@@ -3,6 +3,35 @@ import { DataContainerObject } from './obj'
 
 const REPO_ROOT = 'https://cpp.xivcdn.com/data'
 
+// Local data repository class
+export class LocalDataObject<T extends object> extends DataContainerObject<T> {
+  public constructor(public readonly name: string) {
+    super()
+  }
+
+  public async getData(header: IDataContainerHeader): Promise<IDataContainer<T>> {
+    const res = await fetch(`/data/${encodeURIComponent(this.name)}.json`)
+    if (!res.ok) {
+      throw new Error(
+        `Failed to fetch local file ${encodeURIComponent(this.name)}.json: ${res.status} ${res.statusText}`,
+      )
+    }
+    return res.json()
+  }
+
+  public async getHeader(force?: boolean | undefined): Promise<IDataContainerHeader> {
+    // For local data, fetch the full container and extract header
+    const res = await fetch(`/data/${encodeURIComponent(this.name)}.json`)
+    if (!res.ok) {
+      throw new Error(
+        `Failed to fetch local file ${encodeURIComponent(this.name)}.json: ${res.status} ${res.statusText}`,
+      )
+    }
+    const fullData = await res.json()
+    return fullData // Return full container as it already has version info
+  }
+}
+
 export class CppRepoObject<T extends object> extends DataContainerObject<T> {
   public constructor(public readonly name: string) {
     super()
